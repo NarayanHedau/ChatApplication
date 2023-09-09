@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <title>Chat Application</title>
+    <link rel="stylesheet" href="chat.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="user-list">
+        <h2>User List</h2>
+        <div class="search-container">
+          <form id="search-form" class="search">
+            <input
+              style="height: 25px"
+              type="text"
+              placeholder="Search.."
+              name="search"
+            />
+            <button style="margin-top: -1px" type="submit">
+              <i class="fa fa-search"></i>
+            </button>
+          </form>
+        </div>
+        <div id="search-results">
+          <!-- The search results will be displayed here -->
+        </div>
+        <br />
+        <ul id="users-list">
+          <!-- Add more users here as needed -->
+        </ul>
+      </div>
+      <div class="chat-box">
+        <div class="chat-header">
+          <h2>User 1</h2>
+        </div>
+        <div class="chat-messages">
+          <!-- Chat messages will be displayed here -->
+          <div class="message_incoming" id="receiverId"></div>
+          <div class="message_outgoing" id="senderId"></div>
+          <!-- Add more chat messages here as needed -->
+        </div>
+        <div class="chat-input">
+          <input type="text" id="message" placeholder="Type your message..." />
+          <button onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const socket = io.connect("http://localhost:3000"); // Change the URL as needed
+
+      socket.on("messagesList", (messages) => {
+        displayChatMessages(messages);
+      });
+
+      function displayChatMessages(messages) {
+        const chatMessages = document.querySelector(".chat-messages");
+        console.log(">>>>>>>>>>>>>chatMessages<<<<<<<<<<<<<<<<", chatMessages);
+        chatMessages.innerHTML = ""; // Clear existing chat messages
+
+        if (messages && messages.length > 0) {
+          messages.forEach((message) => {
+            const messageElement = document.createElement("div");
+            messageElement.className =
+              message.senderId === "You"
+                ? ".message_outgoing"
+                : ".message_incoming";
+            messageElement.innerHTML = `<p>${message.message}</p>`;
+            chatMessages.appendChild(messageElement);
+          });
+        } else {
+          chatMessages.textContent = "No messages found.";
+        }
+      }
+
+      async function getAllUsers() {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        try {
+          const response = await fetch("http://localhost:3000/chat/", {
+            headers: { Authorization: token },
+          });
+          const users = await response.json();
+
+          const userListElement = document.getElementById("users-list");
+          userListElement.innerHTML = ""; // Clear the existing list
+          users.data.forEach((user) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = user.name;
+            listItem.addEventListener("click", () => {
+              displaySelectedUser(user);
+            });
+            userListElement.appendChild(listItem);
+          });
+        } catch (error) {
+          console.error("Error fetching users:", error);
+        }
+      }
+
+      getAllUsers();
+
+      document
+        .getElementById("search-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const searchQuery = document.querySelector(
+            "input[name='search']"
+          ).value;
+
+          if (searchQuery.trim() === "") {
+            alert("Please enter a search query.");
+            return;
+          }
+
+          const apiUrl =
+            "http://localhost:3000/user/search?name=" +
+            encodeURIComponent(searchQuery);
+
+          fetch(apiUrl)
+            .then((response) => response.json())
+            .then((data) => {
+              displaySearchResults(data);
+            })
+            .catch((error) => {
+              console.error("Error occurred: " + error);
+            });
+        });
+
+      function displaySearchResults(results) {
+        const searchResultsContainer =
+          document.getElementById("search-results");
+        searchResultsContainer.innerHTML = "";
+
+        if (results && results.data.length > 0) {
+          const ul = document.createElement("ul");
+
+          results.data.forEach((result) => {
+            const li = document.createElement("li");
+            li.textContent = result.name;
+            ul.appendChild(li);
+          });
+
+          searchResultsContainer.appendChild(ul);
+        } else {
+          searchResultsContainer.textContent = "No results found.";
+        }
+      }
+
+      async function displaySelectedUser(data) {
+        const chatHeader = document.querySelector(".chat-header h2");
+        chatHeader.textContent = data._id;
+        socket.emit("getMessages", { receiverId: data._id });
+      }
+
+      // Function to send a message
+      function sendMessage() {
+        const messageInput = document.getElementById("message");
+        const receiverId =
+          document.querySelector(".chat-header h2").textContent;
+        const message = messageInput.value;
+
+        if (!message.trim()) {
+          alert("Please enter a message.");
+          return;
+        }
+
+        const data = {
+          senderId: "YourSenderId", // Replace with the actual sender ID
+          receiverId,
+          message,
+        };
+
+        // Emit the message to the server
+        socket.emit("sendMessage", data);
+
+        // Clear the input field
+        messageInput.value = "";
+      }
+
+      // Listen for sent messages
+      socket.on("private message", (data) => {
+        const chatMessages = document.querySelector(".chat-messages");
+
+        const messageElement = document.createElement("div");
+        messageElement.className = "message"; // No need for `.message incoming` or `.message outgoing`
+        messageElement.innerHTML = `<p>${data.message}</p>`;
+
+        chatMessages.appendChild(messageElement);
+      });
+    </script>
+  </body>
+</html>

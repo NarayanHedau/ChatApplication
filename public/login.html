@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Form</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f2f2f2;
+        }
+  
+        .container {
+          max-width: 400px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #fff;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+  
+        .form-group {
+          margin-bottom: 20px;
+        }
+  
+        label {
+          display: block;
+          font-weight: bold;
+          margin-bottom: 5px;
+        }
+  
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+          width: 95%;
+          padding: 8px;
+          font-size: 16px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+  
+        .btn {
+          display: inline-block;
+          padding: 10px 20px;
+          background-color: #007bff;
+          color: #fff;
+          font-size: 16px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+  
+        .btn:hover {
+          background-color: #0056b3;
+        }
+  
+        .login-link {
+          font-size: 14px;
+        }
+  
+        .login-link a {
+          color: #007bff;
+          text-decoration: none;
+        }
+      </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Login Form</h2>
+      <form id="login-form" action="http://localhost:3000/user/login" method="post">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+
+        <button type="submit" class="btn">Login</button>
+      </form>
+      <p class="login-link"><a href="index.html">Create New User</a></p>
+      <div id="successMessage" style="display: none; color: green">
+        User login successfully!
+      </div>
+      <div id="failedMessage" style="display: none; color: red">
+        Please enter correct email!
+      </div>
+    </div>
+
+
+    <script>
+      // Function to handle the form submission and API call
+      document.getElementById("login-form").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        // Get the form data
+        const formData = {
+          email: document.getElementById("email").value,
+        };
+
+        // Make the API call using Fetch API
+        fetch("http://localhost:3000/user/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+              // Handle the API response here
+              console.log(">>>>>>>>>>>>>>>data", data);
+              if (data.status == "Success") {
+                localStorage.setItem('token', data.data.token)
+              // Successful login, you can redirect the user or perform any other actions
+              console.log("Login successful!", data);
+
+              document.getElementById("successMessage").style.display = "block";
+
+              setTimeout(function () {
+                console.log("Redirecting to chat.html");
+                window.location.href = "chat.html";
+              }, 1000); // Redirect after 2 seconds (2000 milliseconds)
+            } else {
+              // Failed login, show an error message or take appropriate action
+              console.error("Login failed: " + data.message);
+              document.getElementById("failedMessage").style.display = "block";
+            }
+          })
+          .catch((error) => {
+            // Handle any error that occurred during the API call
+            console.error("Error occurred: " + error);
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,167 @@
+<!-- index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register for Chat</title>
+  <link rel="stylesheet" href="register.css">
+</head>
+<body>
+  <div class="container">
+    <form id="signup-form">
+      <h1>Register Form</h1>
+      <input type="text", id ="signup-username" placeholder="Email"><br><br>
+      <div style="align-items: center;"><button id = "signup-btn">Register</button>
+      <br><br>
+      <label>OR</label><br><br>
+      You have already register? <a href="login.html">Login</a>
+    </div>
+    </form>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Registration Form</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+      }
+
+      .container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="password"] {
+        width: 95%;
+        padding: 8px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .btn:hover {
+        background-color: #0056b3;
+      }
+
+      .login-link {
+        font-size: 14px;
+      }
+
+      .login-link a {
+        color: #007bff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Registration Form</h2>
+      <form
+        id="registrationForm"
+        action="http://localhost:3000/user/register"
+        method="post"
+      >
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" id="name" name="name" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+
+        <button type="submit" class="btn">Register</button>
+      </form>
+      <p class="login-link">
+        Already registered? <a href="login.html">Login</a>
+      </p>
+      <!-- Div to display the success message -->
+      <div id="successMessage" style="display: none; color: green">
+        User successfully registered!
+      </div>
+      <div id="failedMessage" style="display: none; color: red">
+        User Already registered!
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        // Function to handle form submission
+        function handleFormSubmit(event) {
+          event.preventDefault();
+
+          // Get form data
+          const formData = {
+            email: $("#email").val(),
+            name:$("#name").val()
+            // Add more form fields if necessary
+          };
+
+          // Make an AJAX request to the API
+          $.ajax({
+            type: "POST",
+            url: "http://localhost:3000/user/register",
+            data: formData,
+            success: function (response) {
+              // Handle the success response, if needed
+              console.log("Registration successful:", response);
+              // Show the success message
+              $("#successMessage").show();
+
+              // Redirect to chat.html after a short delay
+              setTimeout(function () {
+                window.location.href = "login.html";
+                console.log(response);
+              }, 2000); // Redirect after 2 seconds (2000 milliseconds)
+            },
+            error: function (error) {
+              // Handle the error response, if needed
+              console.error("Registration failed:", error);
+              $("#failedMessage").show();
+            },
+          });
+        }
+
+        // Add event listener to the form submission
+        $("#registrationForm").on("submit", handleFormSubmit);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+/* style.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    border: black;
+  }
+  
+  .container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  form {
+    align-content: center;
+    /* display: flex; */
+    border: black;
+  }
+  
+  form input[type="text"] {
+    flex: 1;
+    padding: 10px;
+  }
+  
+  form button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  
