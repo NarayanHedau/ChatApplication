@@ -22,19 +22,17 @@ module.exports = function (http) {
     console.log(`users`, users);
     });
 
-    // socket.on("online_status", async () => {
-    //   const userId = Object.keys(users).find((key) => {
-    //     console.log(">>>>>>>>>>users[key]", users[key]);
-    //     console.log(">>>>>>>>>>socket.id", socket.id);
 
-    //     users[key] === socket.id});
-    //   console.log(">>>>>>>>>>>>user", userId);
-    //   if (userId) {
-    //     let updateStatus = await UserServices.findOne({ _id: userId });
-    //     updateStatus.is_online = true;
-    //     updateStatus.save();
-    //   }
-    // });
+    socket.on("online_status", async function (userData) {
+      let updateStatus = await userModel.findOne({ _id: userData.userId });
+      if (!updateStatus) {
+        return new Error("User not found")
+      }
+      updateStatus.is_online = true;
+      updateStatus.save();
+      console.log("User is Online");
+    });
+
 
     socket.on('sendMessage', async (data) => {
       console.log('Received message:', users[data.receiverId]);
@@ -77,7 +75,6 @@ module.exports = function (http) {
         userId:data.userId
       }
       socket.join(data.roomId);
-      console.log(">>>>>>dataObj", dataObj);
       await RoomServices.create(dataObj)
       console.log(`User joined room: ${data.roomId}`);
     });
@@ -85,11 +82,8 @@ module.exports = function (http) {
     // create Group Chat
     socket.on('groupChat', async(data) => {
       const roomData = await RoomServices.findOne({userId:data.senderId, roomId:data.roomId})
-      console.log(">>>>>>>>>>>>roomData", roomData);
       if (!roomData) {
-        console.log(">>>>>>>if condition");
-        return new Error("User notfound with specific room")
-        //  response.errorMsgResponse(res, 404, "User notfound with specific room")
+        return new Error("User not found with specific room")
       }
       await GroupChatServives.create(data)
       io.to(data.roomId).emit('groupChat', data.message);
@@ -98,7 +92,7 @@ module.exports = function (http) {
 
     // get group chat
     socket.on('getRoomMessage', async(data) => {
-      const result =await GroupChatServives.findAll({roomId:data.roomId})
+      const result =await GroupChatServives.findAll({roomId:data.roomId, senderId:data.senderId})
       socket.emit('getRoomMessage', result);
     });
 
